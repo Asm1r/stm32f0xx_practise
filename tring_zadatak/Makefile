@@ -33,8 +33,7 @@ SRC  = ./src/main.c
 SRC += ./src/utils.c
 SRC += ./src/usart_io.c
 SRC += ./src/rtc_utils.c
-
-SRC += $(DEVDIR)/Source/Templates/system_stm32f0xx.c
+SRC += ./src/system_stm32f0xx.c
 
 ## used parts of the STM-Library
 SRC += $(STMSPSRCDDIR)/stm32f0xx_gpio.c

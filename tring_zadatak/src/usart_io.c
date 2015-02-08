@@ -3,6 +3,8 @@
 
 #include "../inc/usart_io.h"
 
+/* Gets number from USART, where digits is number of digits
+ * max number of digits is 4 (hardcoded).*/
 uint8_t USART_GetNum(uint32_t digits)
 {
         /* assert((digits <= 4)); */
@@ -27,6 +29,9 @@ uint8_t USART_GetNum(uint32_t digits)
         return i;
 }
 
+/* Prins string using USART, string should be NULL terminated
+ * this function is dangerous if input is not valid (fixme)
+ */
 void USART_Puts(char *input)
 {
         uint32_t i = 0x00;
@@ -36,5 +41,4 @@ void USART_Puts(char *input)
                 while (USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
                 USART_SendData(USART1, input[i]);
         }
-
 }

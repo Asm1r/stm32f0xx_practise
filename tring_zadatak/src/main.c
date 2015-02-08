@@ -21,10 +21,10 @@ static uint32_t DLSDateTrigger;	/* RTC->DR register alike for daylight saving ch
 static uint32_t DLSTimeTrigger; /* RTC->TR register alike for daylight saving check */
 static bool led2;		/* LED2 is_on/is_off */
 
-#define INTR 0x07	/* Magic numbers used instead of enums */
+#define INTR 0x07		/* Magic numbers used instead of enums */
 #define NOT_INTR 0x0F
 
-
+/* Enable alarm interrupt */
 static void Interrupt_Setup(void)
 {
 	NVIC_InitTypeDef NvicStructure;
@@ -34,6 +34,7 @@ static void Interrupt_Setup(void)
 	NVIC_Init(&NvicStructure);
 }
 
+/* Configure GPIOs for LED */
 static void LED_Setup(void)
 {
 	GPIO_InitTypeDef	GPIO_InitStructure;
@@ -50,12 +51,12 @@ static void LED_Setup(void)
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 }
 
+/* Setup serial communication with default settings */
 static void USART1_Setup(void)
 {
 	GPIO_InitTypeDef	GPIO_InitStructure;
 	USART_InitTypeDef	USART_InitStructure;
 
-	/* System Clocks Configuration */
 	/* USART1 clock enable */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
 	/* GPIOA clock enable */
@@ -84,7 +85,9 @@ static void USART1_Setup(void)
 	USART_Init(USART1, &USART_InitStructure);
 	USART_Cmd(USART1, ENABLE); 
 }
-
+/* Enable RTC clock, because of our hardware (STM32F030R8) which does not include
+ * LSE/LSI clock sources we'll use HSE which powers core clock too.
+ * Remember to use correct predividers when changing source */
 static void RTC_Setup(void)
 {
 	RTC_InitTypeDef RTC_InitStructure;
@@ -147,7 +150,9 @@ static void Alarm_A_Setup(void)
 	RTC_SetAlarm(RTC_Format_BIN, RTC_Alarm_A, &RTC_AlarmStructure);
 	 
 	/* Enable RTC Alarm A Interrupt: this Interrupt will wake-up the system
-	 * from STANDBY mode (RTC Alarm INTR not enabled in NVIC) */
+	 * from STANDBY mode (RTC Alarm INTR not enabled in NVIC)
+	 * When using HSE clock source clock does not work in sleep */
+
 	RTC_ITConfig(RTC_IT_ALRA, ENABLE);
 	 
 	/* Enable the Alarm A */
@@ -157,19 +162,23 @@ static void Alarm_A_Setup(void)
 	RTC_ClearFlag(RTC_FLAG_ALRAF);
 }
 
+/* Blink LED1 and check for daylight saving change */
 void RTC_IRQHandler(void)
 {
+	/* We write last bit of RTC->TR (time register) to GPIO so that
+	 * it enables LED1 with odd and disables with even number of seconds */
 	uint32_t odd = RTC->TR & (uint32_t)0x01;
 	uint32_t even = ~odd & (uint32_t)0x01;
 	GPIOC->BSRR = (odd << 8) | (even << 24);
 
 	/* Check for Daylight Saving change */
 	if ((RTC->DR == DLSDateTrigger) && (RTC->TR == DLSTimeTrigger)) {
-		DLS_Calculate(INTR);
-
+		DLS_Calculate(INTR); /* This updates triggers too */
 	}
 }
 
+/* Calculate daylight saving date and time and according to that change LED2
+ * also update daylight saving triggers */
 static void  DLS_Calculate(uint8_t arg)
 {
 	RTC_DLSTypeDef DLS_Dates;
@@ -226,7 +235,7 @@ static void  DLS_Calculate(uint8_t arg)
 		RTC_Timestamp(RTC_DateStruct.RTC_Year, DLS_Dates.StartDLS, 0x02);
 	}
 }
-
+/* Helper function used to make create trigger date and time */
 static void RTC_Timestamp(uint8_t RTC_Year, uint8_t RTC_Date, uint8_t season)
 {
 	uint8_t RTC_Month = 0x00;
@@ -252,7 +261,7 @@ static void RTC_Timestamp(uint8_t RTC_Year, uint8_t RTC_Date, uint8_t season)
 
 int main(void)
 {
-	uint8_t option;
+	uint8_t option; /* Input option a-d */
 
 	Interrupt_Setup();
 	LED_Setup();
@@ -288,10 +297,9 @@ int main(void)
 				RTC_PrintDate();
 				break;
 			default:
-				USART_Puts("Unesite jedan od ponudenih karaktera");
+				USART_Puts("Unesite jedan od ponudenih karaktera.");
 				break;
 		}
 	}
-
 	return 0;
 }

@@ -3,9 +3,7 @@
 #include "../inc/utils.h"
 
 /* Converts input to an array of characters, output, representing it's
- * decimal notation. Size is number of digits max number of digits is 
- * 4 (hardcoded),
- */
+ * decimal notation. Size is number of digits.*/
 void GetASCIIDigits(uint8_t input, char output[], uint8_t size)
 {
         uint8_t i = 0x00;

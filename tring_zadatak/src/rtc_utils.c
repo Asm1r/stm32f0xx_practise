@@ -4,6 +4,7 @@
 #include "../inc/usart_io.h"
 #include "../inc/rtc_utils.h"
 
+/* Set calendar using USART interactive, does error checking */
 void RTC_SetCalendar(void)
 {
         RTC_DateTypeDef RTC_DateStruct;
@@ -38,6 +39,7 @@ void RTC_SetCalendar(void)
         }
 }
 
+/* Set RTC Clock using USART, does error checking */
 void RTC_SetClock(void)
 {
         RTC_TimeTypeDef RTC_TimeStruct;
@@ -67,7 +69,7 @@ void RTC_SetClock(void)
         }
 }
 
-
+/* Prints current date, does not change any RTC registers */
 void RTC_PrintDate(void)
 {
         char tmp[5];
@@ -94,6 +96,7 @@ void RTC_PrintDate(void)
         USART_Puts(tmp);
 }
 
+/* Prints current time, does not change any RTC registers */
 void RTC_PrintTime(void)
 {
         char tmp[3];
@@ -118,6 +121,5 @@ void RTC_PrintTime(void)
         GetASCIIDigits(RTC_TimeStruct.RTC_Seconds, tmp, 2);
         tmp[2] = '\0';
         USART_Puts(tmp);
-
 }
 

@@ -9,3 +9,13 @@ This program does:
 2) Sets LED2 on for summer and off for winter time counting (Daylight Saving)
 3) On demand changes RTC (Clock/Calendar)
 4) Automaticaly configures itself for Daylight saving.
+
+PRINCIPLE:
+I used RTC alarm so send alarm interrupt every second. In interrupt handler
+to toggle LED1 I used LSB of RTC Clock register, so we are sure that LED1 is
+always on for even and off for odd seconds. That way we don't need any calibration
+between RTC clock and timer because RTC gererates interrrupts by itself.
+In the same interrupt handler we check for daylight saving change by just comparing 
+two variables, which represent date/time of DLS chage, with current date/time and in
+case of such change we call needed routines to change the RTC. 
+
